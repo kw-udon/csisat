@@ -4,6 +4,7 @@ PWD = $(shell pwd)
 OBJ = obj
 SRC = src
 DOC = doc
+BIN = bin
 LIB =/usr/lib #lib
 
 INCLUDE=/usr/include
@@ -21,6 +22,7 @@ COMPILE_FLAG = #-inline 10
 #COMPILE_FLAG = -p
 OCAML_LD_FLAGS = 
 
+DIRS = $(OBJ) $(BIN)
 
 FILES = \
     $(OBJ)/camlglpk.cmx \
@@ -55,11 +57,18 @@ FILES = \
 	$(OBJ)/csisatTests.cmx \
     $(OBJ)/csisatMain.cmx 
 
-TARGET = bin/csisat
+TARGET = $(BIN)/csisat
 
-all: $(FILES)
+
+all: $(DIRS) lib $(FILES) 
 	$(OCAML_OPT_C) $(COMPILE_FLAG) -o $(TARGET) $(FILES) $(LIBS) $(CAMLGLPK) 
 	$(shell sed -i 's/Version .*\\n\\n/Version 1.2 (Rev REV, Build DATE)\.\\n\\n/g' $(SRC)/csisatConfig.ml)
+
+$(OBJ):
+	mkdir -p $(OBJ)
+
+$(BIN):
+	mkdir -p $(BIN)
 
 VERSION = $(shell svnversion)
 DATE = $(shell date -u +%Y-%m-%dT%H:%M:%S)
@@ -128,7 +137,18 @@ $(OBJ)/%.cmx: $(SRC)/%.ml
 $(OBJ)/%.o: $(SRC)/%.c
 	$(OCAML_C) -c -ccopt -I$(INCLUDE) -ccopt -o -ccopt $@ $<
 
-.PHONY: doc 
+LIB_DIR = lib
+OCAML_LIB = libcsisat
+
+lib: $(LIB_DIR)/$(OCAML_LIB).cmxa
+
+$(LIB_DIR)/$(OCAML_LIB).cmxa $(LIB_DIR)/$(OCAML_LIB).a: $(GLPK_LIB) $(FILES)
+	@echo Creating OCAML \(native code\) library $@
+	@mkdir -p $(LIB_DIR)
+	$(OCAML_OPT_LD) $(OCAML_LD_FLAGS) -a -o $@ $(FILES)
+
+
+.PHONY: doc lib
 
 doc: odoc
 
