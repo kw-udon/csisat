@@ -20,13 +20,12 @@ OCAML_OPT_YACC = $(shell if which ocamlyacc.opt 2> /dev/null > /dev/null ; then 
 COMPILE_FLAG = #-inline 10
 #COMPILE_FLAG = -inline 10 -unsafe -noassert
 #COMPILE_FLAG = -p
-OCAML_LD_FLAGS = 
+OCAML_LD_FLAGS =
 
 DIRS = $(OBJ) $(BIN)
 
 FILES = \
-    $(OBJ)/camlglpk.cmx \
-    $(OBJ)/camlglpk_stubs.o \
+	$(OBJ)/camlglpk.cmx \
 	$(OBJ)/csisatGlobal.cmx \
 	$(OBJ)/csisatMessage.cmx \
 	$(OBJ)/csisatOrdSet.cmx \
@@ -142,11 +141,13 @@ OCAML_LIB = libcsisat
 
 lib: $(LIB_DIR)/$(OCAML_LIB).cmxa
 
-$(LIB_DIR)/$(OCAML_LIB).cmxa $(LIB_DIR)/$(OCAML_LIB).a: $(GLPK_LIB) $(FILES)
+GLPK_OBJ = $(SRC)/camlglpk_stubs.o
+
+$(LIB_DIR)/$(OCAML_LIB).cmxa $(LIB_DIR)/$(OCAML_LIB).a: $(GLPK_LIB) $(FILES) $(GLPK_OBJ)
 	@echo Creating OCAML \(native code\) library $@
 	@mkdir -p $(LIB_DIR)
 	$(OCAML_OPT_LD) $(OCAML_LD_FLAGS) -a -o $@ $(FILES)
-
+	ar q $(LIB_DIR)/$(OCAML_LIB).a $(GLPK_OBJ)
 
 .PHONY: doc lib
 
